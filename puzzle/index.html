@@ -70,7 +70,8 @@
   <div class="board" id="board"></div>
   <p class="win" id="win">Purrfect! You put the chonk back together 🐈</p>
   <div class="controls">
-    <button id="shuffle">Shuffle again</button>
+    <button id="shuffle">🔀 Shuffle puzzle</button>
+    <button id="picture">🖼️ Shuffle picture</button>
     <a class="back" href="../">🐈 Back to Chonk Patrol</a>
   </div>
 
@@ -80,6 +81,7 @@
 
       const N = 3;
       const STORAGE_KEY = "chonk.puzzle";
+      const IMAGES = ["cat.jpg", "cat2.jpg", "cat3.jpg"];
       const board = document.getElementById("board");
       const movesEl = document.getElementById("moves");
       const winEl = document.getElementById("win");
@@ -88,6 +90,7 @@
       let positions = [];
       let moves = 0;
       let won = false;
+      let imageIndex = 0;
 
       function cellXY(cell) {
         return { row: Math.floor(cell / N), col: cell % N };
@@ -102,6 +105,7 @@
         board.querySelectorAll(".tile").forEach(function (el) {
           const tile = Number(el.dataset.tile);
           const pos = cellXY(positions[tile]);
+          el.style.backgroundImage = 'url("' + IMAGES[imageIndex] + '")';
           el.style.width = size + "px";
           el.style.height = size + "px";
           el.style.left = 6 + pos.col * size + "px";
@@ -117,6 +121,7 @@
             positions: positions,
             moves: moves,
             won: won,
+            imageIndex: imageIndex,
           }));
         } catch (err) { /* private mode: state just won't survive reloads */ }
       }
@@ -137,6 +142,12 @@
         positions = saved.positions;
         moves = typeof saved.moves === "number" ? saved.moves : 0;
         won = saved.won === true;
+        imageIndex =
+          typeof saved.imageIndex === "number" &&
+          saved.imageIndex >= 0 &&
+          saved.imageIndex < IMAGES.length
+            ? saved.imageIndex
+            : 0;
         return true;
       }
 
@@ -200,6 +211,11 @@
       }
 
       document.getElementById("shuffle").addEventListener("click", shuffle);
+      document.getElementById("picture").addEventListener("click", function () {
+        imageIndex = (imageIndex + 1) % IMAGES.length;
+        render();
+        save();
+      });
       window.addEventListener("resize", render);
 
       // small hooks for testing
@@ -209,10 +225,16 @@
         move: function (t) { tryMove(t, true); },
       };
 
+      IMAGES.forEach(function (src) {
+        const img = new Image();
+        img.src = src;
+      });
+
       build();
       if (restore()) {
         render();
       } else {
+        imageIndex = Math.floor(Math.random() * IMAGES.length);
         shuffle();
       }
     })();

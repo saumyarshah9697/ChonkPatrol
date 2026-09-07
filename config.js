@@ -20,6 +20,11 @@ const CHONK_CONFIG = {
     "assets/cats/door-cat-cut.png",
     "assets/cats/shorthair-cat-cut.png",
     "assets/cats/white-cat-cut.png",
+    "assets/cats/patterned-tabby-cut.png",
+    "assets/cats/snow-tabby-cut.png",
+    "assets/cats/watch-tabby-cut.png",
+    "assets/cats/kitten-04-cut.png",
+    "assets/cats/kitten-06-cut.png",
   ],
 
   // Meow sounds. A random one plays when a cat is spotted. The 🔊 button
