@@ -16,9 +16,19 @@ const CHONK_CONFIG = {
   // Any image that fails to load is skipped; if the list is empty the game
   // falls back to emoji cats, so it always works.
   catImages: [
-    "assets/cats/chonk-orange.svg",
-    "assets/cats/chonk-grey.svg",
-    "assets/cats/chonk-black.svg",
+    "assets/cats/black-cat-cut.png",
+    "assets/cats/door-cat-cut.png",
+    "assets/cats/shorthair-cat-cut.png",
+    "assets/cats/white-cat-cut.png",
+  ],
+
+  // Meow sounds. A random one plays when a cat is spotted. The 🔊 button
+  // in the game mutes/unmutes (remembered per device). Empty list = silent.
+  meowSounds: [
+    "assets/sounds/meow-1.m4a",
+    "assets/sounds/meow-2.m4a",
+    "assets/sounds/meow-3.m4a",
+    "assets/sounds/meow-4.m4a",
   ],
 
   // How big a cat appears, in pixels (special cats show a bit bigger).

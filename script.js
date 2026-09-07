@@ -157,10 +157,58 @@
     spawnTimer = setTimeout(spawnCat, rampedInt(GAP_START, GAP_FULL));
   }
 
+  // --- Meow sounds ------------------------------------------------------
+  const soundToggleEl = document.getElementById("sound-toggle");
+  const SOUND_KEY = "chonk.meows";
+  let meowClips = [];
+  let soundOn = resolveSoundFlag();
+
+  function resolveSoundFlag() {
+    try {
+      const stored = localStorage.getItem(SOUND_KEY);
+      if (stored !== null) return stored === "true";
+    } catch (err) { /* private mode */ }
+    return true;
+  }
+
+  function updateSoundToggle() {
+    soundToggleEl.textContent = soundOn ? "🔊 Meows: on" : "🔇 Meows: off";
+  }
+
+  function loadMeows(paths) {
+    (paths || []).forEach(function (path) {
+      const clip = new Audio();
+      clip.preload = "auto";
+      clip.addEventListener("canplaythrough", function () {
+        if (meowClips.indexOf(clip) === -1) {
+          meowClips.push(clip);
+          soundToggleEl.hidden = false;
+        }
+      }, { once: true });
+      clip.src = path;
+    });
+    updateSoundToggle();
+  }
+
+  function playMeow() {
+    if (!soundOn || meowClips.length === 0) return;
+    const clip = pick(meowClips).cloneNode();
+    clip.volume = 0.5;
+    const attempt = clip.play();
+    if (attempt && attempt.catch) attempt.catch(function () { /* autoplay policy */ });
+  }
+
+  soundToggleEl.addEventListener("click", function () {
+    soundOn = !soundOn;
+    try { localStorage.setItem(SOUND_KEY, String(soundOn)); } catch (err) { /* ignore */ }
+    updateSoundToggle();
+  });
+
   function spotCat(cat, special) {
     score += 1;
     scoreEl.textContent = "Cats spotted: " + score;
 
+    playMeow();
     showReaction(cat, special);
     cat.classList.add("spotted");
     setTimeout(function () { cat.remove(); }, 500);
@@ -284,6 +332,7 @@
 
   // --- Start ------------------------------------------------------------
   applyRandomBackground(cfg.backgroundImages);
+  loadMeows(cfg.meowSounds);
   preloadImages(cfg.catImages).then(function (pool) {
     originalPool = pool;
     catImagePool = pool;

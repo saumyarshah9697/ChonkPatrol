@@ -75,6 +75,16 @@ The game is a static page, so GitHub Pages hosts it for free:
 2. Go to **Settings → Pages** and set the source to the `main` branch
 3. GitHub gives you a link you can send to anyone
 
+## Credits
+
+Cat photos and meow sounds come from [Wikimedia Commons](https://commons.wikimedia.org):
+
+- [Domestic Cat White](https://commons.wikimedia.org/wiki/File:Domestic_Cat_White.JPG) — public domain
+- [Domestic Short Hair Cat](https://commons.wikimedia.org/wiki/File:Domestic_Short_Hair_Cat.jpg) — CC0
+- [Domestic cat sitting by door](https://commons.wikimedia.org/wiki/File:Domestic_cat_sitting_by_door.jpg) — public domain
+- [Domestic Cat Black Sitting](https://commons.wikimedia.org/wiki/File:Domestic_Cat_Black_Sitting.jpg) by Anish Anilkumar — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Meows: [νιαούρισμα](https://commons.wikimedia.org/wiki/File:2015-11-24.%CE%BD%CE%B9%CE%B1%CE%BF%CF%8D%CF%81%CE%B9%CF%83%CE%BC%CE%B1.%CE%9D%CE%B9%CE%AC%CE%BF%CF%85.noise_reduced.flac) (CC0), [Maullido de gata hembra joven](https://commons.wikimedia.org/wiki/File:Maullido_de_gata_hembra_joven.ogg) (CC0), [Meow of a Siamese cat](https://commons.wikimedia.org/wiki/File:Meow_of_a_Siamese_cat_-_freemaster2.wav) (CC0), [Meow of a pleading cat](https://commons.wikimedia.org/wiki/File:Meow_of_a_pleading_cat.oga) (public domain)
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
