@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+/*
+ * Batch cat cutter for Chonk Patrol.
+ *
+ * Drop raw cat photos into raw-cats/ (jpg/png/webp), then run:
+ *   node cut-cats.cjs
+ *
+ * Each photo gets its cat cut out (background removed, cropped) and saved
+ * as assets/cats/<name>-cut.png. Photos where no cat is detected are
+ * reported and skipped. At the end the script prints the catImages list
+ * to paste into config.js.
+ *
+ * Uses the game's own cat-extractor.js inside headless Chromium (same
+ * Playwright install used elsewhere on this machine). Needs internet the
+ * first time for the segmentation model.
+ */
+
+"use strict";
+
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { execSync, spawn } = require("child_process");
+
+const REPO_DIR = __dirname;
+const RAW_DIR = process.argv[2] || path.join(REPO_DIR, "raw-cats");
+const OUT_DIR = path.join(REPO_DIR, "assets", "cats");
+const PORT = 8873;
+const EXTENSIONS = /\.(jpe?g|png|webp)$/i;
+
+function findPlaywright() {
+  try {
+    return require.resolve("playwright");
+  } catch (err) { /* not on the direct require path */ }
+  const npxCache = path.join(os.homedir(), ".npm", "_npx");
+  if (fs.existsSync(npxCache)) {
+    for (const entry of fs.readdirSync(npxCache)) {
+      const candidate = path.join(npxCache, entry, "node_modules", "playwright");
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  console.error("Playwright not found. Run: npx playwright install chromium");
+  process.exit(3);
+}
+
+async function main() {
+  if (!fs.existsSync(RAW_DIR)) {
+    fs.mkdirSync(RAW_DIR, { recursive: true });
+    console.log("Created " + RAW_DIR);
+    console.log("Drop raw cat photos in there, then run this again.");
+    return;
+  }
+
+  const rawFiles = fs.readdirSync(RAW_DIR).filter((f) => EXTENSIONS.test(f));
+  if (rawFiles.length === 0) {
+    console.log("No photos found in " + RAW_DIR + " (jpg/png/webp).");
+    return;
+  }
+  console.log(rawFiles.length + " photo(s) to process.");
+
+  const server = spawn("python3", ["-m", "http.server", String(PORT)], {
+    cwd: REPO_DIR,
+    stdio: "ignore",
+  });
+
+  const { chromium } = require(findPlaywright());
+  const browser = await chromium.launch();
+
+  try {
+    const page = await browser.newPage();
+    await page.goto("http://localhost:" + PORT + "/index.html?extract=0", {
+      waitUntil: "load",
+    });
+
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    const written = [];
+    const skipped = [];
+
+    for (const file of rawFiles) {
+      process.stdout.write("  " + file + " ... ");
+      const rawUrl = "raw-cats/" + encodeURIComponent(file);
+      const result = await page.evaluate(function (url) {
+        return window.CHONK_EXTRACTOR.extract([url]);
+      }, rawUrl);
+
+      const out = result[0];
+      if (!out || !out.startsWith("data:image/png;base64,")) {
+        console.log("no cat detected, skipped");
+        skipped.push(file);
+        continue;
+      }
+
+      const name = file.replace(EXTENSIONS, "") + "-cut.png";
+      const target = path.join(OUT_DIR, name);
+      fs.writeFileSync(target, Buffer.from(out.split(",")[1], "base64"));
+      const kb = Math.round(fs.statSync(target).size / 1024);
+      console.log("-> assets/cats/" + name + " (" + kb + " KB)");
+      written.push(name);
+    }
+
+    console.log("");
+    console.log("Done: " + written.length + " cutout(s), " + skipped.length + " skipped.");
+    if (skipped.length > 0) {
+      console.log("Skipped (no cat found): " + skipped.join(", "));
+    }
+    if (written.length > 0) {
+      const all = fs.readdirSync(OUT_DIR).filter((f) => /\.(png|svg)$/i.test(f)).sort();
+      console.log("");
+      console.log("catImages list for config.js (all files currently in assets/cats/):");
+      console.log("  catImages: [");
+      for (const f of all) {
+        console.log('    "assets/cats/' + f + '",');
+      }
+      console.log("  ],");
+    }
+  } finally {
+    await browser.close();
+    server.kill();
+  }
+}
+
+main().catch(function (err) {
+  console.error(err);
+  process.exit(1);
+});

@@ -206,12 +206,16 @@
 
   // --- Cat cutout control (browser-side) -------------------------------
   // Priority: ?extract=1/0 in the URL > saved toggle choice > config.js.
+  // While cutouts are being prepared, a loading screen holds the game so
+  // cats only ever appear in their final form.
   const extractToggleEl = document.getElementById("extract-toggle");
+  const loadingEl = document.getElementById("loading");
   const STORAGE_KEY = "chonk.extractCats";
 
   let originalPool = [];
   let extractedPool = null;
   let extracting = false;
+  let spawnPaused = false;
   let extractOn = resolveExtractFlag();
 
   function resolveExtractFlag() {
@@ -224,6 +228,20 @@
     return cfg.extractCats === true;
   }
 
+  function setSpawnPaused(paused) {
+    if (spawnPaused === paused) return;
+    spawnPaused = paused;
+    if (paused) {
+      clearTimeout(spawnTimer);
+    } else {
+      scheduleNextSpawn();
+    }
+  }
+
+  function showLoading(show) {
+    loadingEl.classList.toggle("show", show);
+  }
+
   function setToggleLabel(text, busy) {
     extractToggleEl.textContent = text;
     extractToggleEl.classList.toggle("busy", !!busy);
@@ -234,25 +252,26 @@
     if (!extractOn) {
       catImagePool = originalPool;
       setToggleLabel("✂️ Cat cutouts: off", false);
+      showLoading(false);
+      setSpawnPaused(false);
       return;
     }
     if (extractedPool) {
       catImagePool = extractedPool;
       setToggleLabel("✂️ Cat cutouts: on", false);
+      showLoading(false);
+      setSpawnPaused(false);
       return;
     }
+    setSpawnPaused(true);
+    showLoading(true);
+    setToggleLabel("✂️ Cutting out cats…", true);
     if (extracting) return;
     extracting = true;
-    setToggleLabel("✂️ Cutting out cats…", true);
     window.CHONK_EXTRACTOR.extract(originalPool).then(function (pool) {
       extractedPool = pool;
       extracting = false;
-      if (extractOn) {
-        catImagePool = extractedPool;
-        setToggleLabel("✂️ Cat cutouts: on", false);
-      } else {
-        setToggleLabel("✂️ Cat cutouts: off", false);
-      }
+      applyExtractState();
     });
   }
 
@@ -267,12 +286,13 @@
   preloadImages(cfg.catImages).then(function (pool) {
     originalPool = pool;
     catImagePool = pool;
-    scheduleNextSpawn();
 
-    // The toggle only matters when there are real images to cut out.
     if (pool.length > 0 && window.CHONK_EXTRACTOR) {
       extractToggleEl.hidden = false;
       applyExtractState();
+    }
+    if (!spawnPaused) {
+      scheduleNextSpawn();
     }
   });
 })();

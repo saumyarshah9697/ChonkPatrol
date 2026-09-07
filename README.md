@@ -43,7 +43,14 @@ catImages: [
 
 Each spawned cat is picked randomly from the list. PNGs with transparent backgrounds look best. Any image that fails to load is skipped, and if the list is empty the game falls back to emoji cats — so it always works.
 
-**Automatic cat cutouts (optional):** if your photos have the cat sitting in a room, the game can cut the cat out automatically — a small ML model runs in your browser (downloaded on first use, needs internet, takes a few seconds). Control it right in the browser: click the **✂️ Cat cutouts** button under the game (your choice is remembered on that device), or force it in the URL with `?extract=1` / `?extract=0`. The `extractCats` value in `config.js` is just the default. The game keeps playing with the original photos while cutouts are being prepared, and if the model can't load or a photo has no detectable cat, that photo is used as-is.
+**Cutting cats out of photos — recommended flow:** if your photos have the cat sitting in a room, cut them out locally before uploading, so visitors get instant, pre-polished cutouts with zero download cost:
+
+1. Drop raw photos (jpg/png/webp) into `raw-cats/` — this folder never gets committed
+2. Run `node cut-cats.cjs` — each photo becomes a transparent-background `assets/cats/<name>-cut.png`, and photos with no detectable cat are reported and skipped
+3. Check the cutouts look good, paste the printed `catImages` list into `config.js`
+4. Run `./publish.sh` to ship them
+
+**Runtime cutouts (fallback):** the game can also cut cats out in the visitor's browser — click the **✂️ Cat cutouts** button under the game (remembered per device) or force with `?extract=1` / `?extract=0` in the URL; `extractCats` in `config.js` sets the default. While cutouts are being prepared, a calm loading screen holds the game so cats only ever appear in their final form. Prefer the local flow: runtime extraction re-downloads the ML model for every visitor session.
 
 Other knobs in `config.js`: `catSize` (pixels), `endScore` (when the ending screen shows), and `speedRamp` / `rampFullAt` (turn the ramp off, or set how fast it reaches full pace).
 
@@ -56,6 +63,8 @@ Other knobs in `config.js`: `catSize` (pixels), `endScore` (when the ending scre
 | `style.css` | The cozy look — mobile-first, works on phones and desktops |
 | `script.js` | The game: cat spawning, clicking, score, milestones, ramp |
 | `cat-extractor.js` | Optional in-browser cat cutout (used when `extractCats` is on) |
+| `cut-cats.cjs` | Local batch cutter: `raw-cats/` photos in, `assets/cats/` cutouts out |
+| `publish.sh` | One-command commit + push to GitHub |
 | `assets/` | Background images and the `cats/` folder with cat pictures |
 
 ## Hosting it online
