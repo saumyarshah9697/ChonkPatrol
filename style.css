@@ -12,49 +12,66 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
   background: var(--cream);
   font-family: "Georgia", "Times New Roman", serif;
   color: var(--ink);
   display: flex;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* Mobile-first: the game fills the phone screen */
 .page {
-  width: min(680px, 94vw);
+  width: 100%;
   text-align: center;
-  padding: 24px 0 40px;
+  padding: 10px 10px 24px;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 6vw, 2rem);
   font-weight: normal;
   letter-spacing: 0.06em;
-  margin: 8px 0 2px;
+  margin: 4px 0 0;
 }
 
 .score {
-  font-size: 1.05rem;
-  margin: 4px 0 18px;
+  font-size: clamp(0.95rem, 4vw, 1.05rem);
+  margin: 2px 0 10px;
   opacity: 0.8;
 }
 
 .window-frame {
   background: var(--warm-wood);
   border-radius: 22px;
-  padding: 16px 16px 0;
+  padding: 12px 12px 0;
   box-shadow: 0 14px 34px rgba(90, 74, 63, 0.22);
 }
 
 .scene {
   position: relative;
-  height: min(420px, 58vh);
+  height: min(72vh, 640px);
   border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 62%, #d9edd3 62%, #cfe6c6 100%);
+  background-size: cover;
+  background-position: center;
   cursor: default;
+  touch-action: manipulation;
+}
+
+/* When a custom background image is set, hide the drawn scene */
+.scene.custom-bg .sky,
+.scene.custom-bg .skyline,
+.scene.custom-bg .pane-divider {
+  display: none;
 }
 
 .sky {
@@ -151,31 +168,49 @@ body {
 }
 
 .windowsill {
-  height: 52px;
-  margin: 0 -16px;
+  height: 46px;
+  margin: 0 -12px;
   background: var(--wood-dark);
   border-radius: 0 0 22px 22px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 34px;
-  font-size: 1.6rem;
+  padding: 0 26px;
+  font-size: 1.4rem;
 }
 
 .cat {
   position: absolute;
-  font-size: 2.4rem;
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
   animation: cat-in 0.5s ease-out;
   transition: opacity 0.6s ease;
   line-height: 1;
   z-index: 3;
+  touch-action: manipulation;
+}
+
+.cat-emoji {
+  font-size: 2.6rem;
+}
+
+.cat-img {
+  width: 84px;
+  height: auto;
+  filter: drop-shadow(0 3px 5px rgba(60, 45, 33, 0.25));
+}
+
+.cat.special.cat-emoji {
+  font-size: 3.2rem;
+}
+
+.cat.special.cat-img {
+  width: 106px;
 }
 
 .cat.special {
-  font-size: 3rem;
-  filter: drop-shadow(0 0 8px rgba(255, 214, 140, 0.9));
+  filter: drop-shadow(0 0 10px rgba(255, 214, 140, 0.95));
 }
 
 .cat.leaving {
@@ -226,6 +261,7 @@ body {
   pointer-events: none;
   z-index: 5;
   box-shadow: 0 4px 12px rgba(90, 74, 63, 0.15);
+  max-width: 86%;
 }
 
 .milestone.show {
@@ -240,6 +276,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 10;
+  padding: 20px;
 }
 
 .ending.show {
@@ -249,7 +286,7 @@ body {
 .ending-card {
   background: white;
   border-radius: 20px;
-  padding: 34px 40px;
+  padding: 30px 32px;
   max-width: 380px;
   box-shadow: 0 16px 40px rgba(90, 74, 63, 0.2);
 }
@@ -260,12 +297,12 @@ body {
 
 .ending-button {
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--ink);
   background: var(--soft-pink);
   border: none;
   border-radius: 999px;
-  padding: 10px 22px;
+  padding: 12px 24px;
   cursor: pointer;
 }
 
@@ -274,8 +311,53 @@ body {
 }
 
 .dedication {
-  margin-top: 20px;
+  margin-top: 14px;
   font-size: 0.95rem;
   opacity: 0.65;
   font-style: italic;
+}
+
+.extract-toggle {
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(150, 104, 63, 0.35);
+  border-radius: 999px;
+  padding: 7px 16px;
+  margin: 14px auto 0;
+  cursor: pointer;
+  align-self: center;
+}
+
+.extract-toggle:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.extract-toggle.busy {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Larger screens: contained card layout */
+@media (min-width: 720px) {
+  .page {
+    width: min(760px, 94vw);
+    padding-top: 24px;
+  }
+
+  .scene {
+    height: min(62vh, 560px);
+  }
+
+  .window-frame {
+    padding: 16px 16px 0;
+  }
+
+  .windowsill {
+    height: 52px;
+    margin: 0 -16px;
+    padding: 0 34px;
+    font-size: 1.6rem;
+  }
 }
