@@ -2,12 +2,14 @@
 // This is the only file you need to edit when adding your own images.
 
 const CHONK_CONFIG = {
-  // Scene backgrounds. Drop images into assets/ and list them here — each
-  // session (page load) picks one at random. Leave the list empty (or let
-  // every path fail to load) and the game uses the built-in drawn window
-  // scene instead.
+  // Scene backgrounds. Each session (page load) picks one entry at random.
+  // The special value "window" means the built-in drawn window scene.
+  // Drop photo backgrounds into assets/ and mix them in, e.g.:
+  //   backgroundImages: ["window", "assets/living-room.jpg", "assets/background.svg"],
+  // An empty list (or every path failing to load) also falls back to the
+  // drawn window scene.
   backgroundImages: [
-    "assets/background.svg",
+    "window",
   ],
 
   // The cats. Drop images into assets/cats/ and list them here.

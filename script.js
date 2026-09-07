@@ -90,6 +90,7 @@
     function tryNext(index) {
       if (index >= candidates.length) return;
       const url = candidates[index];
+      if (url === "window") return; // the built-in drawn window scene
       const img = new Image();
       img.onload = function () {
         scene.style.backgroundImage = 'url("' + url + '")';
