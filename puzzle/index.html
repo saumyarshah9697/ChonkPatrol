@@ -50,6 +50,21 @@
     }
     .win.show { opacity: 1; }
     .controls { margin-top: 14px; display: flex; gap: 10px; }
+    .sizes { display: flex; gap: 8px; justify-content: center; margin: 0 0 12px; }
+    .size-btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(150, 104, 63, 0.35);
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+    .size-btn.active {
+      background: #f5c6c6;
+      font-weight: bold;
+    }
     button, .back {
       font-family: inherit;
       font-size: 0.9rem;
@@ -66,6 +81,11 @@
 <body>
   <h1>Chonk Puzzle</h1>
   <p class="moves" id="moves">Moves: 0</p>
+  <div class="sizes">
+    <button class="size-btn" data-size="3">3×3</button>
+    <button class="size-btn" data-size="4">4×4</button>
+    <button class="size-btn" data-size="5">5×5</button>
+  </div>
   <div class="board" id="board"></div>
   <p class="win" id="win">Purrfect! You put the chonk back together 🐈</p>
   <div class="controls">
@@ -79,7 +99,7 @@
     (function () {
       "use strict";
 
-      const N = 3;
+      let N = 3;
       const STORAGE_KEY = "chonk.puzzle";
       const IMAGES = (window.CHONK_PUZZLE_IMAGES && window.CHONK_PUZZLE_IMAGES.length > 0)
         ? window.CHONK_PUZZLE_IMAGES
@@ -124,6 +144,7 @@
             moves: moves,
             won: won,
             imageIndex: imageIndex,
+            gridSize: N,
           }));
         } catch (err) { /* private mode: state just won't survive reloads */ }
       }
@@ -136,11 +157,13 @@
           return false;
         }
         if (!saved || !Array.isArray(saved.positions)) return false;
-        if (saved.positions.length !== N * N) return false;
+        const gs = [3, 4, 5].indexOf(saved.gridSize) !== -1 ? saved.gridSize : 3;
+        if (saved.positions.length !== gs * gs) return false;
         const sorted = saved.positions.slice().sort(function (a, b) { return a - b; });
-        for (let i = 0; i < N * N; i++) {
+        for (let i = 0; i < gs * gs; i++) {
           if (sorted[i] !== i) return false;
         }
+        N = gs;
         positions = saved.positions;
         moves = typeof saved.moves === "number" ? saved.moves : 0;
         won = saved.won === true;
@@ -186,7 +209,8 @@
         positions = [];
         for (let i = 0; i < N * N; i++) positions.push(i);
         // random legal moves from solved state -> always solvable
-        for (let i = 0; i < 250; i++) {
+        const scrambles = N * N * 30;
+        for (let i = 0; i < scrambles; i++) {
           const movable = [];
           for (let t = 0; t < N * N - 1; t++) {
             if (isAdjacent(positions[t], blankCell())) movable.push(t);
@@ -200,16 +224,34 @@
       }
 
       function build() {
+        board.innerHTML = "";
         for (let tile = 0; tile < N * N - 1; tile++) {
           const el = document.createElement("div");
           el.className = "tile";
           el.dataset.tile = String(tile);
           const home = cellXY(tile);
+          el.style.backgroundSize = (N * 100) + "% " + (N * 100) + "%";
           el.style.backgroundPosition =
             (home.col * 100) / (N - 1) + "% " + (home.row * 100) / (N - 1) + "%";
-          el.addEventListener("click", function () { tryMove(tile, true); });
+          el.addEventListener("click", (function (t) {
+            return function () { tryMove(t, true); };
+          })(tile));
           board.appendChild(el);
         }
+      }
+
+      function setSize(size) {
+        if (size === N) return;
+        N = size;
+        syncSizeButtons();
+        build();
+        shuffle();
+      }
+
+      function syncSizeButtons() {
+        document.querySelectorAll(".size-btn").forEach(function (b) {
+          b.classList.toggle("active", Number(b.dataset.size) === N);
+        });
       }
 
       document.getElementById("shuffle").addEventListener("click", shuffle);
@@ -218,6 +260,9 @@
         render();
         save();
       });
+      document.querySelectorAll(".size-btn").forEach(function (b) {
+        b.addEventListener("click", function () { setSize(Number(b.dataset.size)); });
+      });
       window.addEventListener("resize", render);
 
       // small hooks for testing
@@ -225,6 +270,7 @@
         state: function () { return positions.slice(); },
         isSolved: function () { return positions.every(function (c, t) { return c === t; }); },
         move: function (t) { tryMove(t, true); },
+        size: function () { return N; },
       };
 
       IMAGES.forEach(function (src) {
@@ -232,11 +278,14 @@
         img.src = src;
       });
 
-      build();
       if (restore()) {
+        build();
+        syncSizeButtons();
         render();
       } else {
         imageIndex = Math.floor(Math.random() * IMAGES.length);
+        build();
+        syncSizeButtons();
         shuffle();
       }
     })();
