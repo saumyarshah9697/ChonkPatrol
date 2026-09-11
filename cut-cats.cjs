@@ -10,6 +10,10 @@
  * reported and skipped. At the end the script prints the catImages list
  * to paste into config.js.
  *
+ * With --write-config (used by add-cats.sh) this run's cutouts are MERGED
+ * into the existing catImages list in config.js (existing entries stay,
+ * duplicates skipped) — the cat pool only ever grows.
+ *
  * Uses the game's own cat-extractor.js inside headless Chromium (same
  * Playwright install used elsewhere on this machine). Needs internet the
  * first time for the segmentation model.
@@ -23,7 +27,8 @@ const path = require("path");
 const { execSync, spawn } = require("child_process");
 
 const REPO_DIR = __dirname;
-const RAW_DIR = process.argv[2] || path.join(REPO_DIR, "raw-cats");
+const POSITIONAL = process.argv.slice(2).filter(function (a) { return a.indexOf("--") !== 0; });
+const RAW_DIR = POSITIONAL[0] || path.join(REPO_DIR, "raw-cats");
 const OUT_DIR = path.join(REPO_DIR, "assets", "cats");
 const PORT = 8873;
 const EXTENSIONS = /\.(jpe?g|png|webp)$/i;
@@ -65,10 +70,12 @@ async function main() {
 
   const { chromium } = require(findPlaywright());
   const browser = await chromium.launch();
+  const harness = path.join(REPO_DIR, "cutter-tmp.html");
+  fs.writeFileSync(harness, '<!DOCTYPE html><script src="cat-extractor.js"></script>');
 
   try {
     const page = await browser.newPage();
-    await page.goto("http://localhost:" + PORT + "/index.html?extract=0", {
+    await page.goto("http://localhost:" + PORT + "/cutter-tmp.html", {
       waitUntil: "load",
     });
 
@@ -104,18 +111,39 @@ async function main() {
       console.log("Skipped (no cat found): " + skipped.join(", "));
     }
     if (written.length > 0) {
-      const all = fs.readdirSync(OUT_DIR).filter((f) => /\.(png|svg)$/i.test(f)).sort();
-      console.log("");
-      console.log("catImages list for config.js (all files currently in assets/cats/):");
-      console.log("  catImages: [");
-      for (const f of all) {
-        console.log('    "assets/cats/' + f + '",');
+      const list = written.sort().map(function (f) { return "assets/cats/" + f; });
+      if (process.argv.includes("--write-config")) {
+        const configPath = path.join(REPO_DIR, "config.js");
+        const config = fs.readFileSync(configPath, "utf8");
+        const current = config.match(/catImages: \[([\s\S]*?)\]/)[1]
+          .split("\n")
+          .map(function (l) { return (l.match(/"([^"]+)"/) || [])[1]; })
+          .filter(Boolean);
+        const merged = current.concat(list.filter(function (p) { return current.indexOf(p) === -1; }));
+        const block = "catImages: [\n" +
+          merged.map(function (p) { return '    "' + p + '",'; }).join("\n") +
+          "\n  ]";
+        const updated = config.replace(/catImages: \[[\s\S]*?\]/, block);
+        fs.writeFileSync(configPath, updated);
+        execSync("node --check " + JSON.stringify(configPath));
+        console.log("");
+        console.log("config.js catImages updated: " + merged.length + " cats (" +
+          (merged.length - current.length) + " added).");
+      } else {
+        const all = fs.readdirSync(OUT_DIR).filter((f) => /\.(png|svg)$/i.test(f)).sort();
+        console.log("");
+        console.log("catImages list for config.js (all files currently in assets/cats/):");
+        console.log("  catImages: [");
+        for (const f of all) {
+          console.log('    "assets/cats/' + f + '",');
+        }
+        console.log("  ],");
       }
-      console.log("  ],");
     }
   } finally {
     await browser.close();
     server.kill();
+    try { fs.unlinkSync(harness); } catch (err) { /* already gone */ }
   }
 }
 

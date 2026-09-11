@@ -37,7 +37,6 @@
     .tile {
       position: absolute;
       border-radius: 8px;
-      background-image: url("cat.jpg");
       background-size: 300% 300%;
       cursor: pointer;
       transition: top 0.15s ease, left 0.15s ease;
@@ -75,13 +74,16 @@
     <a class="back" href="../">🐈 Back to Chonk Patrol</a>
   </div>
 
+  <script src="images.js"></script>
   <script>
     (function () {
       "use strict";
 
       const N = 3;
       const STORAGE_KEY = "chonk.puzzle";
-      const IMAGES = ["cat.jpg", "cat2.jpg", "cat3.jpg"];
+      const IMAGES = (window.CHONK_PUZZLE_IMAGES && window.CHONK_PUZZLE_IMAGES.length > 0)
+        ? window.CHONK_PUZZLE_IMAGES
+        : ["cat.jpg"];
       const board = document.getElementById("board");
       const movesEl = document.getElementById("moves");
       const winEl = document.getElementById("win");

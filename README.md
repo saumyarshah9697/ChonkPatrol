@@ -50,7 +50,11 @@ Each spawned cat is picked randomly from the list. PNGs with transparent backgro
 3. Check the cutouts look good, paste the printed `catImages` list into `config.js`
 4. Run `./publish.sh` to ship them
 
-**Runtime cutouts (fallback):** the game can also cut cats out in the visitor's browser — click the **✂️ Cat cutouts** button under the game (remembered per device) or force with `?extract=1` / `?extract=0` in the URL; `extractCats` in `config.js` sets the default. While cutouts are being prepared, a calm loading screen holds the game so cats only ever appear in their final form. Prefer the local flow: runtime extraction re-downloads the ML model for every visitor session.
+**Adding new cats:** `./add-cats.sh /path/to/new/photos` imports a folder of photos (HEIC converts automatically), cuts the cats out, and merges them into the pool — existing cats stay, so the pool only grows. Review the new cutouts, delete any bad ones (and their `config.js` line), then `./publish.sh`.
+
+**Updating the puzzle pictures:** square-crop the photos yourself first (by hand or with KiroCrew) — cropping is deliberately manual so every picture is framed the way you want. Then `./update-puzzle-pics.sh /path/to/cropped/photos` archives the current set into `archive/puzzle/YYYY-MM-DD/` (every past set stays browsable by date), installs the new pictures, and rewrites `puzzle/images.js`. It warns about non-square pictures, since the board would stretch them.
+
+All cutting happens on your machine before uploading — the published game does no image processing in the visitor's browser, it just shows the pre-cut PNGs.
 
 Other knobs in `config.js`: `catSize` (pixels), `endScore` (when the ending screen shows), and `speedRamp` / `rampFullAt` (turn the ramp off, or set how fast it reaches full pace).
 
@@ -62,11 +66,14 @@ Other knobs in `config.js`: `catSize` (pixels), `endScore` (when the ending scre
 | `config.js` | Your settings: background, cat images, size, end score, speed ramp |
 | `style.css` | The cozy look — mobile-first, works on phones and desktops |
 | `script.js` | The game: cat spawning, clicking, score, milestones, ramp |
-| `cat-extractor.js` | Optional in-browser cat cutout (used when `extractCats` is on) |
+| `cat-extractor.js` | Segmentation engine used by `cut-cats.cjs` (local tooling, not loaded by the game) |
 | `cut-cats.cjs` | Local batch cutter: `raw-cats/` photos in, `assets/cats/` cutouts out |
+| `add-cats.sh` | Add new cats to the game pool (additive, nothing removed) |
+| `update-puzzle-pics.sh` | Swap the puzzle pictures; old set archived under `archive/puzzle/` by date |
 | `publish.sh` | One-command commit + push to GitHub |
 | `puzzle/` | Chonk Puzzle: a slide-tile puzzle of a cat photo, state survives reloads |
 | `assets/` | Background images, the `cats/` folder, and meow sounds |
+| `archive/puzzle/` | Past puzzle picture sets, one dated folder per swap |
 
 ## Hosting it online
 

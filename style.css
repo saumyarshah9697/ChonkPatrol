@@ -310,44 +310,6 @@ body {
   filter: brightness(1.04);
 }
 
-.loading {
-  position: fixed;
-  inset: 0;
-  background: rgba(253, 246, 236, 0.92);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 11;
-  padding: 20px;
-}
-
-.loading.show {
-  display: flex;
-}
-
-.loading-card {
-  background: white;
-  border-radius: 20px;
-  padding: 30px 32px;
-  max-width: 340px;
-  text-align: center;
-  box-shadow: 0 16px 40px rgba(90, 74, 63, 0.2);
-}
-
-.loading-emoji {
-  font-size: 2.4rem;
-  margin: 0;
-  animation: gentle-pulse 1.6s ease-in-out infinite;
-}
-
-.loading-text { font-size: 1.15rem; margin: 12px 0 6px; }
-.loading-sub  { font-size: 0.9rem; opacity: 0.7; margin: 0; }
-
-@keyframes gentle-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.12); opacity: 0.75; }
-}
-
 .dedication {
   margin-top: 14px;
   font-size: 0.95rem;

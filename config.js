@@ -25,6 +25,15 @@ const CHONK_CONFIG = {
     "assets/cats/watch-tabby-cut.png",
     "assets/cats/kitten-04-cut.png",
     "assets/cats/kitten-06-cut.png",
+    "assets/cats/cat-02-cut.png",
+    "assets/cats/cat-03-cut.png",
+    "assets/cats/cat-04-cut.png",
+    "assets/cats/cat-05-cut.png",
+    "assets/cats/cat-06-cut.png",
+    "assets/cats/cat-07-cut.png",
+    "assets/cats/cat-09-cut.png",
+    "assets/cats/cat-10-cut.png",
+    "assets/cats/cat-11-cut.png",
   ],
 
   // Meow sounds. A random one plays when a cat is spotted. The 🔊 button
@@ -38,16 +47,6 @@ const CHONK_CONFIG = {
 
   // How big a cat appears, in pixels (special cats show a bit bigger).
   catSize: 84,
-
-  // Optional: cut the cat out of each photo automatically (removes the
-  // background around the cat). Great for phone photos where the cat sits in
-  // a room. Runs entirely in the browser via a small ML model downloaded on
-  // first load (needs internet, adds a few seconds). If the model can't load
-  // or no cat is found in a photo, that photo is used as-is.
-  // This is only the DEFAULT: in the game you can flip it anytime with the
-  // "✂️ Cat cutouts" button (choice is remembered), or force it via URL
-  // with ?extract=1 or ?extract=0.
-  extractCats: false,
 
   // The game ends (calm ending screen) when this many cats are spotted.
   // Spotted cats are cumulative — cats that get away never cost you anything.
